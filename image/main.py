@@ -1,21 +1,22 @@
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
+from google.genai import types
+import requests
+import os
 
 load_dotenv()
 
-client = OpenAI()
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
-response = client.chat.completions.create(
-    model="gpt-4.1-mini",
-    messages=[
-        {
-            "role": "user",
-            "content": [
-                { "type": "text", "text": "Generate a caption for this image in about 50 words" },
-                { "type": "image_url", "image_url": {"url": "https://images.pexels.com/photos/17767237/pexels-photo-17767237.jpeg"} }
-            ]
-        }
+image_url = "https://images.pexels.com/photos/17767237/pexels-photo-17767237.jpeg"
+image_bytes = requests.get(image_url).content
+
+response = client.models.generate_content(
+    model="gemini-2.5-flash",
+    contents=[
+        types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+        "Generate a caption for this image in about 50 words"
     ]
 )
 
-print("Response:", response.choices[0].message.content)
+print("Response:", response.text)
